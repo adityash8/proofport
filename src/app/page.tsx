@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { trackFormSubmission, trackOrderGeneration, sendServerSideEvent } from '@/lib/analytics'
 
 export default function Home() {
   const [formData, setFormData] = useState({
@@ -18,6 +19,15 @@ export default function Home() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+
+    // Track form submission
+    trackFormSubmission('travel_document_form', {
+      origin: formData.origin,
+      destination: formData.destination,
+      visa_type: formData.visaType,
+      bundle: formData.bundle,
+      ttl_days: formData.ttlDays
+    })
 
     try {
       const response = await fetch('/api/orders/generate', {
@@ -39,6 +49,32 @@ export default function Home() {
       const data = await response.json()
       if (response.ok) {
         setResult(data)
+
+        // Track successful order generation
+        const orderAmount = calculatePrice()
+        trackOrderGeneration({
+          orderId: data.order_id,
+          amount: orderAmount,
+          currency: 'USD',
+          services: formData.bundle,
+          ttlDays: formData.ttlDays
+        })
+
+        // Send server-side event to Meta
+        await sendServerSideEvent({
+          eventName: 'Purchase',
+          eventTime: Math.floor(Date.now() / 1000),
+          userData: {
+            clientIpAddress: '', // Will be populated server-side
+            clientUserAgent: navigator.userAgent,
+          },
+          customData: {
+            value: orderAmount,
+            currency: 'USD',
+            content_ids: formData.bundle,
+            content_type: 'product',
+          }
+        })
       } else {
         alert('Error: ' + data.error)
       }

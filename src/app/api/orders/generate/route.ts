@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import { getPostHogClient } from '@/lib/posthog'
 
 interface GenerateOrderRequest {
   origin: string
@@ -142,6 +143,17 @@ export async function POST(request: NextRequest) {
 
     // Mock PDF generation
     const pdf_url = `/api/orders/${orderData.id}/pdf`
+
+    // Track order generation
+    const posthog = getPostHogClient()
+    await posthog.trackOrderGenerated(orderData.id, 'anonymous', {
+      origin,
+      dest,
+      visa_type,
+      bundle,
+      ttl_days,
+      passengers
+    })
 
     return NextResponse.json({
       order_id: orderData.id,

@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { Analytics } from '@vercel/analytics/next'
+import { AnalyticsProvider } from '@/components/AnalyticsProvider'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -36,8 +37,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
+      <head>
+        <meta name="google-site-verification" content="f47ac10b58564a60" />
+        <link rel="canonical" href={process.env.NEXT_PUBLIC_SITE_URL || 'https://proof-port-evnfqwraz-ezmoney.vercel.app'} />
+      </head>
       <body className={`${inter.className} bg-gray-900 text-white min-h-screen`}>
-        <nav className="border-b border-gray-800 bg-gray-900/50 backdrop-blur-sm sticky top-0 z-50">
+        <AnalyticsProvider>
+          <nav className="border-b border-gray-800 bg-gray-900/50 backdrop-blur-sm sticky top-0 z-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               <div className="flex items-center space-x-2">
@@ -75,10 +81,10 @@ export default function RootLayout({
           {children}
         </main>
 
-        <SpeedInsights />
-        <Analytics />
+          <SpeedInsights />
+          <Analytics />
 
-        <footer className="border-t border-gray-800 bg-gray-900 py-12">
+          <footer className="border-t border-gray-800 bg-gray-900 py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               <div className="col-span-1 md:col-span-2">
@@ -127,8 +133,9 @@ export default function RootLayout({
             <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
               <p>&copy; 2024 ProofPort. All rights reserved.</p>
             </div>
-          </div>
-        </footer>
+            </div>
+          </footer>
+        </AnalyticsProvider>
       </body>
     </html>
   )
